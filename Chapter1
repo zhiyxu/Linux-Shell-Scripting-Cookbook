@@ -221,3 +221,56 @@ end=$(date +%s)
 difference=$((end - start))
 echo Time taken to execute commands is $difference seconds.
 ```
+
+# 1.12
+
+```
+$ function args(){ 
+> echo "$1"
+> echo "$2"
+> echo "$#"
+> echo "$$"
+> echo "$@"
+> echo "$*"
+> for arg in "$@"; do 
+> echo $arg
+> done
+> for arg in "$*"; do 
+> echo $arg
+> done
+> }
+
+$ args str1 str2 str3
+str1
+str2
+3
+24521
+str1 str2 str3
+str1 str2 str3
+str1
+str2
+str3
+str1 str2 str3
+```
+
+"$@"被扩展成"$1" "$2" "$3"等，"$*"被扩展成"$1c$2c$3"，其中c是IFS的第一个字符
+由于"$*"将所有的参数当作单个字符串，所以很少被使用
+
+与array的获取方式${array[@]}一起，还有一个很容易被误解的点在于引号的使用：
+
+```
+$ a="1 2 3 4 5"
+$ for i in $a; do
+> echo $i 
+> done
+1
+2
+3
+4
+5
+$ for i in "$a"; do
+> echo $i
+> done
+1 2 3 4 5
+```
+
