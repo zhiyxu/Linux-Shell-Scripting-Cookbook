@@ -1,0 +1,223 @@
+# 1.3
+
+`var=value`赋值语句中，如果value不包含任何空白字符，那么它就不需要使用引号进行引用
+
+```
+# var=value
+# echo ${#var}
+5
+```
+
+# 1.5
+
+- let命令可以直接执行基本的算术操作，当使用let时，变量名之前不需要再添加$
+
+```
+# no1=4
+# no2=5
+# echo $no1+$no2
+4+5
+# let result=no1+no2
+# echo $result
+9
+# let no1++
+# echo $no1
+5
+# let no2--
+# echo $no2
+4
+# let no1+=6
+# echo $no1
+11
+# let no2-=6
+# echo $no2
+-2
+```
+- 其他方法，如[] (()) expr
+
+```
+# echo $[ no1 + no2 ]
+9
+# echo $[no1+$no2]
+9
+# echo $((no1+5))
+16
+# echo $(($no1+5))
+16
+# echo $(expr 3+4)
+3+4
+# echo $(expr 3 + 4)
+7
+# echo $(expr $no1 + 5)
+16
+```
+
+# 1.6
+
+## basis
+
+文件描述符是与某个打开的文件或数据流相关联的整数
+文件描述符0，1，2是系统预留的
+
+- 0 —— stdin 标准输入
+- 1 —— stdout 标准输出
+- 2 —— stderr 标准错误
+
+通过内容过滤将输出重定向到文件是我们平日里的基本任务之一，>等同于1>，>>等同于1>>
+
+将stderr单独重定向到一个文件，stdout重定向到另一个文件：
+
+```
+# cmd 2>stderr 1>stdout
+```
+
+还可以用**将stderr转换成stdout**，输入到同一个文件：
+
+```
+# cmd 2>&1 output
+# cmd &> output
+```
+
+当然还可以将stderr丢弃到文件/dev/null，/dev/null是一个特殊的设备文件，接收到的任何数据都会被丢弃。null设备通常也被称为黑洞
+
+```
+# cmd 2>/dev/null 1>stdout
+```
+
+```
+$ cat a*
+cat: a1: Permission denied
+a2
+a3
+$ cat a* 2>stderr 1>stdout
+$ cat stdout
+a2
+a3
+$ cat stderr
+cat: a1: Permission denied
+```
+
+## tee
+
+对stderr和stdout进行重定向，被重定向的文本会传入到文件，也就没有内容可以通过管道|传给接下来的命令了。但是有一个方法既可以将数据重定向到文件，还可以提供一份重定向数据的副本作为后续命令的stdin，这一切可以通过tee来实现。
+
+```
+$ cat a* | tee out1 out2 | cat
+cat: a1: Permission denied
+a2
+a3
+$ cat out1
+a2
+a3
+$ cat out2
+a2
+a3
+```
+
+注意，tee只能从stdin中读取，所以"cat: a1: Permission denied"stderr的内容并没有在文件中出现。
+
+## stdin的多种输入方式
+
+借助重定向，可以像使用stdin那样从文件中读取数据：
+
+```
+$ cmd < file
+```
+
+以下例子中，cat << EOF >log.txt与下一个EOF之间所有的文本行都会被当作stdin数据：
+```
+#!/bin/bash
+
+$ cat << EOF >log.txt
+> LOG FILE HEADER
+> This is a test log file
+> Function: System statistics
+> EOF
+$ cat log.txt
+LOG FILE HEADER
+This is a test log file
+Function: System statistics
+```
+
+# 1.7
+
+```
+# array=(1 2 3 4 5)
+# echo ${array[0]}
+1
+# echo ${array[4]}
+5
+# echo $array
+1
+```
+
+以清单形式打印出数组中的所有值
+
+```
+# echo ${array[*]}
+1 2 3 4 5
+# echo ${array[@]}
+1 2 3 4 5
+
+查看数组元素个数
+
+```
+# echo ${#array[*]}
+5
+# echo ${#array[@]}
+5
+```
+
+查看数组的索引
+
+```
+# echo ${!array[*]}
+0 1 2 3 4
+```
+
+# 1.10
+
+类Unix系统中，日期被存储为一个整数，其大小为自世界标准时间/UTC 1970年1月1日0时0分0秒起所流逝的秒数。这种计时方式称为纪元时或Unix时间。
+
+读取日期
+
+```
+$ date
+Sun Nov  4 12:42:37 CST 2018
+```
+
+打印纪元时
+
+```
+$ date +%s
+1541306608
+```
+
+--date用于提供日期串作为输入，并按照指定格式输出
+
+```
+$ date --date "Sun Nov  4 12:42:37 CST 2018" +%s
+1541306557
+$ date --date "Sun Nov  4 12:42:37 CST 2018" +%A
+Sunday
+$ date --date "Nov 8 1993" +%A
+Monday
+$ date --date "Nov 8 1993" "+%d %B %Y"
+08 November 1993
+$ date "+%d %B %Y"
+04 November 2018
+```
+
+## 计算时间
+
+```
+#!/bin/bash
+
+start=$(date +%s)
+commands;
+statements;
+end=$(date +%s)
+
+difference=$((end - start))
+echo Time taken to execute commands is $difference seconds.
+```
