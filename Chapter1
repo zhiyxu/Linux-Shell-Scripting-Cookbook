@@ -275,3 +275,27 @@ $ for i in "$a"; do
 1 2 3 4 5
 ```
 
+# 1.16
+IFS，Internal Field Separator，内部字段分隔符，在处理文本数据时可以将单个数据流划分为不同数据元素的定界符（delimiter）
+
+IFS的默认值为空白字符（换行符、制表符或者空格）
+
+```
+$ echo $IFS
+
+$ data="name,sex,rollno,location"
+$ oldIFS=$IFS
+$ for item in $data;
+> do
+>     echo Item: $item
+> done
+Item: name,sex,rollno,location
+$ IFS=,
+$ for item in $data; do     echo Item: $item; done
+Item: name
+Item: sex
+Item: rollno
+Item: location
+
+$ IFS=$oldIFS
+```
